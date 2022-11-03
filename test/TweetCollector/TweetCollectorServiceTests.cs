@@ -10,7 +10,7 @@ namespace TweetCollector.Test.TweetCollector
     public class TweetCollectorServiceTests
     {
         
-        private readonly IConfiguration TestConfiguration;
+        private readonly IConfiguration testConfiguration;
 
         public TweetCollectorServiceTests()
         {
@@ -18,7 +18,7 @@ namespace TweetCollector.Test.TweetCollector
                 {"TweetCollector:AccessToken", "FakeToken"},
             };
 
-            TestConfiguration = new ConfigurationBuilder()
+            testConfiguration = new ConfigurationBuilder()
                 .AddInMemoryCollection(settings)
                 .Build();
         }
@@ -32,7 +32,7 @@ namespace TweetCollector.Test.TweetCollector
             
             
             var objectUnderTest = new TweetCollectorService(mockRepository.Object, httpClient, 
-                TestConfiguration, mockLogger.Object);
+                testConfiguration, mockLogger.Object);
             await objectUnderTest.Collect(CancellationToken.None);
 
             mockRepository.Verify(r => r.Add(It.IsAny<Tweet>()));

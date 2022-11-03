@@ -1,13 +1,11 @@
 using System.Collections.Concurrent;
-using System.Linq.Expressions;
 
 namespace TwitterClient
 {
-
     public class TweetRepository : ITweetRepository
     {
         private readonly List<Tweet> tweets = new();
-        private readonly ConcurrentDictionary<string, int> hashTags = new();
+        private readonly ConcurrentDictionary<string, HashTag> hashTags = new();
 
         public Tweet GetById(string id)
         {
@@ -24,6 +22,11 @@ namespace TwitterClient
             return tweets.Where(predicate).ToList();
         }
 
+        public int TweetCount()
+        {
+            return tweets.Count();
+        }
+
         public void Add(Tweet tweet)
         {
             tweets.Add(tweet);
@@ -31,18 +34,28 @@ namespace TwitterClient
             var tagsInTweet = tweet.Text.Split(' ').Where(t => t.StartsWith('#')).ToList();
             foreach (var tag in tagsInTweet)
             {
-                hashTags.AddOrUpdate(tag, 1, (key, oldValue) => oldValue + 1);
+                var hashTag = new HashTag(tag);
+                hashTags.AddOrUpdate(tag, hashTag, (key, oldValue) =>
+                {
+                    oldValue.Frequency++;
+                    return oldValue;
+                });
             }
         }
 
-        public Dictionary<string, int> ListHashTags()
+        public Dictionary<string, HashTag> ListHashTags()
         {
             return hashTags.ToDictionary(x => x.Key, x => x.Value);
         }
 
-        public Dictionary<string, int> ListHashTags(Func<KeyValuePair<string, int>, bool> predicate)
+        public Dictionary<string, HashTag> ListHashTags(Func<KeyValuePair<string, HashTag>, bool> predicate)
         {
             return hashTags.Where(predicate).ToDictionary(x => x.Key, x => x.Value);
+        }
+
+        public int HashTagCount()
+        {
+            return hashTags.Count();
         }
     }
 }

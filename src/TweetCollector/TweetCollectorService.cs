@@ -2,6 +2,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using TwitterClient.TweetCollector;
 
 namespace TwitterClient;
 
@@ -40,26 +41,22 @@ public class TweetCollectorService : ITweetCollectorService
         {
             using var request = new HttpRequestMessage(HttpMethod.Get, StreamUrl);
             request.Headers.Add("Authorization", $"Bearer {access_token}");
+            
             var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, token);
-
+            response.EnsureSuccessStatusCode();
+            
             await using Stream streamToReadFrom = await response.Content.ReadAsStreamAsync(token);
             using var sr = new StreamReader(streamToReadFrom);
             await using var jsonTextReader = new JsonTextReader(sr);
             jsonTextReader.SupportMultipleContent = true;
+            
             while (await jsonTextReader.ReadAsync(token) && !token.IsCancellationRequested)
             {
-                try
-                {
                     var serialized = serializer.Deserialize<JObject>(jsonTextReader);
                     if (serialized != null)
                     {
                         repository.Add(JsonToTweet(serialized));
                     }
-                }
-                catch (Exception ex)
-                {
-                    logger.LogError(ex, "{ServiceName} Error while processing response", nameof(TweetCollectorService));
-                }
             }
         }
         catch (Exception ex)

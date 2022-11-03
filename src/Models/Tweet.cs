@@ -1,6 +1,5 @@
 namespace TwitterClient
 {
-
     public class Tweet
     {
         public Tweet(string id, string text)

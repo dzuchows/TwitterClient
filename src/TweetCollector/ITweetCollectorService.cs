@@ -1,4 +1,4 @@
-namespace TwitterClient;
+namespace TwitterClient.TweetCollector;
 
 public interface ITweetCollectorService
 {
